@@ -1,0 +1,91 @@
+Django live-blogging application
+================================
+
+This is a live-blogging application meant to work alongside an existing blogging application.
+
+The main blogging application must have a model for entries that the live-blogging model can use as a foreign key.
+
+
+Requirements
+------------
+
+Django (Tested with 1.1 but should work with 1.0)
+
+Markdown for Python (http://www.freewisdom.org/projects/python-markdown/)
+
+A Django blogging application
+
+
+Features
+------------
+
+The appearance of the live-blogging entries can be customized in the template of the main blog entry (or in a separate template file, using {% include %}). See Usage below.
+
+The live-blogging entries can be ordered newest-to-oldest or oldest-to-newest.
+
+
+Installation
+------------
+
+1. Place the 'liveblog' directory in your Python path.
+2. Add 'liveblog' to the INSTALLED_APPS tuple in your Django settings.py file.
+3. Add two other variables to your settings.py file: BLOG_APP and BLOG_ENTRY_MODEL. BLOG_APP should be the main Django blogging module you want to connect this live-blogging application to. BLOG_ENTRY_MODEL should be the name of the model within that module that represents an entry in the blog.
+
+For example, if your main blogging application is called 'blog', and it uses a model called 'Entry' to represent a blog entry, you would add the following to settings.py:
+BLOG_APP = 'blog'
+BLOG_ENTRY_MODEL = 'Entry'
+
+This allows the live-blogging application to do the equivalent of 'from blog.models import Entry', which allows it to use Entry as a foreign key.
+
+4. Run manage.py syncdb to create the necessary table for the live-blogging application.
+
+5. In the template that's used to display a main blog entry, add the following:
+
+        {% load order_queryset %}
+
+6. Customize the following template code to your liking and add it to the template. 'object' is a main blog entry.
+
+        {# If this entry has associated live-blog entries (i.e., it is a live blog), show them. #}
+        {% if object.liveblogentry_set.all %}
+
+        <p>Order:
+        {% ifequal liveblog_order 'pub_date' %}
+        <a href="{{ object.get_absolute_url }}?order=asc">newest first</a>
+        {% else %}
+        newest first
+        {% endifequal %}
+        |
+        {% ifequal liveblog_order '-pub_date' %}
+        <a href="{{ object.get_absolute_url }}?order=desc">oldest first</a>
+        {% else %}
+        oldest first
+        {% endifequal %}
+        </p>
+
+            <ul class="liveblog">
+            {% for entry in object.liveblogentry_set.all|order_by:liveblog_order %}
+                <li>
+                    <p><strong>{{ entry.pub_date|date:"P" }}:</strong>
+                    {{ entry.body }}</p>
+                </li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+
+
+Usage
+------------
+
+In your admin site, you'll see 'Live Blog Entries' listed. Add, edit or remove a live-blog entry just as you would any other item in the Django admin. Each live-blog entry must be associated with a main-blog entry (the main blog entry is where you would put an introduction, etc.). By default, the associated main-blog entry is the newest entry, but any blog entry can be selected in the admin.
+
+
+Example site
+------------
+
+http://bycoffe.com/blog/2009/jul/15/statknowledge-day-one/
+
+
+Credits
+------------
+
+This application includes an order_by template filter found here: http://www.djangosnippets.org/snippets/741/
