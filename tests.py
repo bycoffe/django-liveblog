@@ -1,11 +1,15 @@
 import unittest
 
+from django.conf import settings
 from django.contrib.auth.models import User
 
 from liveblog.models import LiveBlogEntry
-from blog.models import Entry
+#from blog.models import Entry
 
 from markdown import markdown
+
+blog = __import__(settings.BLOG_APP)
+Entry = blog.models.__getattribute__(settings.BLOG_ENTRY_MODEL)
 
 class LiveBlogTestCase(unittest.TestCase):
 
